@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sati City Rush</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #07111f, #10294d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            background: #111;
+            overflow: hidden;
+            border-left: 4px solid #233;
+            border-right: 4px solid #233;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            padding: 22px;
+            background: radial-gradient(circle at top, #1b5b92, #07111f 55%, #03070d);
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        h2 {
+            margin: 16px 0 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: .9;
+            margin: 12px 0 22px;
+            line-height: 1.4;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 14px;
+            margin: 8px 0;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            color: #06101d;
+            background: linear-gradient(135deg, #ffd54a, #ff9f1c);
+            box-shadow: 0 6px 0 #915a00;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #915a00;
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #96e6ff, #42a5f5);
+            box-shadow: 0 6px 0 #155c94;
+        }
+
+        button.locked {
+            background: #555;
+            color: #ccc;
+            box-shadow: 0 6px 0 #333;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .1);
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 18px;
+            padding: 14px;
+            margin: 12px 0;
+            backdrop-filter: blur(8px);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .small {
+            font-size: 13px;
+            opacity: .85;
+            line-height: 1.35;
+        }
+
+        #game {
+            position: absolute;
+            inset: 0;
+            background: #444;
+            overflow: hidden;
+            display: none;
+        }
+
+        #game.active {
+            display: block;
+        }
+
+        .skyline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(#0b2c52, #183b62);
+            z-index: 1;
+        }
+
+        .city-label {
+            position: absolute;
+            top: 50px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, .8);
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 2;
+        }
+
+        .road {
+            position: absolute;
+            left: 12%;
+            top: 0;
+            width: 76%;
+            height: 100%;
+            background: #2d2d2d;
+            border-left: 8px solid #ddd;
+            border-right: 8px solid #ddd;
+            z-index: 3;
+        }
+
+        .line {
+            position: absolute;
+            left: 50%;
+            width: 8px;
+            height: 70px;
+            background: #fff5a1;
+            transform: translateX(-50%);
+            border-radius: 8px;
+            z-index: 4;
+        }
+
+        .player,
+        .enemy,
+        .coin,
+        .power {
+            position: absolute;
+            z-index: 8;
+        }
+
+        .player,
+        .enemy {
+            width: 48px;
+            height: 82px;
+            border-radius: 14px 14px 10px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, .45);
+        }
+
+        .player {
+            background: #00d084;
+            border: 3px solid #b9ffe4;
+        }
+
+        .enemy {
+            background: #e63946;
+            border: 3px solid #ffb3b8;
+        }
+
+        .bike {
+            width: 36px !important;
+            height: 70px !important;
+            font-size: 26px;
+            border-radius: 18px;
+        }
+
+        .suv {
+            width: 58px !important;
+            height: 90px !important;
+        }
+
+        .sport {
+            background: #ffd166 !important;
+            border-color: #fff1a8 !important;
+        }
+
+        .coin {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff7a8, #f7b801 55%, #a56d00);
+            border: 2px solid #fff0a3;
+            box-shadow: 0 0 15px #ffd60a;
+        }
+
+        .power {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #7b2cff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            box-shadow: 0 0 16px #bf9cff;
+        }
+
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 12;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 7px;
+        }
+
+        .hud div {
+            background: rgba(0, 0, 0, .55);
+            border: 1px solid rgba(255, 255, 255, .18);
+            padding: 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .controls {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 15px;
+            z-index: 15;
+            display: flex;
+            gap: 12px;
+        }
+
+        .controls button {
+            flex: 1;
+            padding: 18px;
+            font-size: 24px;
+            opacity: .85;
+        }
+
+        .pauseBtn {
+            position: absolute;
+            right: 12px;
+            top: 70px;
+            width: auto;
+            z-index: 14;
+            padding: 9px 12px;
+            font-size: 13px;
+            box-shadow: none;
+            border-radius: 10px;
+        }
+
+        .toast {
+            position: absolute;
+            top: 112px;
+            left: 20px;
+            right: 20px;
+            z-index: 30;
+            background: rgba(0, 0, 0, .7);
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #ffd54a;
+            color: #111;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <section id="menu" class="screen active">
+            <h1>🚗 Sati City Rush</h1>
+            <p class="subtitle">Drive through Gombe roads, collect coins, avoid traffic, buy bikes and cars, and unlock
+                new city areas.</p>
+            <div class="card">
+                <div class="row"><b>Total Coins</b><span class="badge" id="menuCoins">0 🪙</span></div>
+                <div class="row"><b>Current Vehicle</b><span id="currentVehicle">Sati Car</span></div>
+                <div class="row"><b>Road</b><span id="currentRoad">Gombe City Center</span></div>
+            </div>
+            <button onclick="startGame()">▶ Start Rush</button>
+            <button class="secondary" onclick="showScreen('garage')">🏪 Garage / Buy Vehicles</button>
+            <button class="secondary" onclick="showScreen('roads')">🗺️ Unlock Gombe Roads</button>
+            <button class="secondary" onclick="showScreen('how')">❔ How to Play</button>
+        </section>
+
+        <section id="garage" class="screen">
+            <h2>🏪 Sati Garage</h2>
+            <p class="small">Buy vehicles with coins. Bikes are fast, SUVs are strong, sports cars are powerful.</p>
+            <div id="vehicleList"></div>
+            <button class="secondary" onclick="showScreen('menu')">⬅ Back</button>
+        </section>
+
+        <section id="roads" class="screen">
+            <h2>🗺️ Gombe Roads</h2>
+            <p class="small">Unlock new roads. Each road changes difficulty and background name.</p>
+            <div id="roadList"></div>
+            <button class="secondary" onclick="showScreen('menu')">⬅ Back</button>
+        </section>
+
+        <section id="how" class="screen">
+            <h2>How to Play</h2>
+            <div class="card small">
+                <p>⬅ ➡ Move left and right.</p><br>
+                <p>🪙 Collect coins to buy vehicles and unlock roads.</p><br>
+                <p>🚙 Avoid red traffic cars.</p><br>
+                <p>🛡️ Purple shield protects you for a short time.</p><br>
+                <p>On phone, use the big buttons. On computer, use arrow keys.</p>
+            </div>
+            <button class="secondary" onclick="showScreen('menu')">⬅ Back</button>
+        </section>
+
+        <section id="gameOver" class="screen">
+            <h1>Game Over</h1>
+            <p class="subtitle" id="overText">You crashed!</p>
+            <div class="card">
+                <div class="row"><b>Score</b><span id="finalScore">0</span></div>
+                <div class="row"><b>Coins Earned</b><span id="finalCoins">0</span></div>
+                <div class="row"><b>Total Coins</b><span id="overCoins">0</span></div>
+            </div>
+            <button onclick="startGame()">🔁 Play Again</button>
+            <button class="secondary" onclick="showScreen('menu')">🏠 Main Menu</button>
+        </section>
+
+        <main id="game">
+            <div class="skyline"></div>
+            <div class="city-label" id="roadName">Gombe City Center</div>
+            <div class="road" id="roadArea"></div>
+            <div class="hud">
+                <div>Score: <span id="score">0</span></div>
+                <div>Coins: <span id="runCoins">0</span></div>
+                <div>Speed: <span id="speed">1</span></div>
+            </div>
+            <button class="pauseBtn" onclick="endGame('You stopped the rush.')">Exit</button>
+            <div class="toast" id="toast">Shield!</div>
+            <div class="controls">
+                <button onmousedown="left=true" onmouseup="left=false" ontouchstart="left=true"
+                    ontouchend="left=false">⬅</button>
+                <button onmousedown="right=true" onmouseup="right=false" ontouchstart="right=true"
+                    ontouchend="right=false">➡</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const vehicles = [
+            { id: 'car', name: 'Sati Car', icon: '🚗', price: 0, speed: 1, className: '' },
+            { id: 'bike', name: 'Gombe Bike', icon: '🏍️', price: 80, speed: 1.25, className: 'bike' },
+            { id: 'suv', name: 'Sati SUV', icon: '🚙', price: 170, speed: .9, className: 'suv' },
+            { id: 'sport', name: 'Rush Sport Car', icon: '🏎️', price: 320, speed: 1.45, className: 'sport' }
+        ];
+        const roads = [
+            { id: 'center', name: 'Gombe City Center', price: 0, difficulty: 1, bg: '#183b62' },
+            { id: 'market', name: 'Gombe Main Market Road', price: 120, difficulty: 1.18, bg: '#4f2d16' },
+            { id: 'airport', name: 'Gombe Airport Road', price: 250, difficulty: 1.35, bg: '#1d4852' },
+            { id: 'night', name: 'Sati Night Highway', price: 430, difficulty: 1.65, bg: '#09091f' }
+        ];
+
+        let data = JSON.parse(localStorage.getItem('satiRushData')) || {
+            coins: 0,
+            vehicle: 'car',
+            road: 'center',
+            ownedVehicles: ['car'],
+            ownedRoads: ['center']
+        };
+
+        let game, roadArea, player, score = 0, runCoins = 0, frame = 0, speed = 4;
+        let left = false, right = false, running = false, shield = 0;
+        let enemies = [], coins = [], powers = [], lines = [];
+
+        function save() { localStorage.setItem('satiRushData', JSON.stringify(data)); }
+        function getVehicle() { return vehicles.find(v => v.id === data.vehicle); }
+        function getRoad() { return roads.find(r => r.id === data.road); }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('game').classList.remove('active');
+            document.getElementById(id).classList.add('active');
+            renderUI();
+        }
+
+        function renderUI() {
+            document.getElementById('menuCoins').textContent = data.coins + ' 🪙';
+            document.getElementById('currentVehicle').textContent = getVehicle().name;
+            document.getElementById('currentRoad').textContent = getRoad().name;
+            const vehicleList = document.getElementById('vehicleList');
+            vehicleList.innerHTML = '';
+            vehicles.forEach(v => {
+                const owned = data.ownedVehicles.includes(v.id);
+                const active = data.vehicle === v.id;
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `<div class="row"><b>${v.icon} ${v.name}</b><span>${v.price} 🪙</span></div><p class="small">Speed power: ${v.speed}</p>`;
+                const btn = document.createElement('button');
+                btn.textContent = active ? '✅ Selected' : owned ? 'Select Vehicle' : 'Buy Vehicle';
+                if (!owned && data.coins < v.price) btn.className = 'locked';
+                btn.onclick = () => buyOrSelectVehicle(v.id);
+                div.appendChild(btn);
+                vehicleList.appendChild(div);
+            });
+
+            const roadList = document.getElementById('roadList');
+            roadList.innerHTML = '';
+            roads.forEach(r => {
+                const owned = data.ownedRoads.includes(r.id);
+                const active = data.road === r.id;
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `<div class="row"><b>🛣️ ${r.name}</b><span>${r.price} 🪙</span></div><p class="small">Traffic difficulty: ${r.difficulty}</p>`;
+                const btn = document.createElement('button');
+                btn.textContent = active ? '✅ Current Road' : owned ? 'Use Road' : 'Unlock Road';
+                if (!owned && data.coins < r.price) btn.className = 'locked';
+                btn.onclick = () => buyOrSelectRoad(r.id);
+                div.appendChild(btn);
+                roadList.appendChild(div);
+            });
+        }
+
+        function buyOrSelectVehicle(id) {
+            const v = vehicles.find(x => x.id === id);
+            if (data.ownedVehicles.includes(id)) data.vehicle = id;
+            else if (data.coins >= v.price) { data.coins -= v.price; data.ownedVehicles.push(id); data.vehicle = id; }
+            save(); renderUI();
+        }
+
+        function buyOrSelectRoad(id) {
+            const r = roads.find(x => x.id === id);
+            if (data.ownedRoads.includes(id)) data.road = id;
+            else if (data.coins >= r.price) { data.coins -= r.price; data.ownedRoads.push(id); data.road = id; }
+            save(); renderUI();
+        }
+
+        function startGame() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            game = document.getElementById('game');
+            roadArea = document.getElementById('roadArea');
+            game.classList.add('active');
+            game.querySelector('.skyline').style.background = `linear-gradient(${getRoad().bg}, #183b62)`;
+            document.getElementById('roadName').textContent = getRoad().name;
+            roadArea.innerHTML = '';
+            enemies = []; coins = []; powers = []; lines = [];
+            score = 0; runCoins = 0; frame = 0; shield = 0; running = true;
+            for (let i = 0; i < 7; i++) createLine(i * 120);
+            player = document.createElement('div');
+            player.className = 'player ' + getVehicle().className;
+            player.textContent = getVehicle().icon;
+            player.style.left = '50%';
+            player.style.bottom = '105px';
+            roadArea.appendChild(player);
+            requestAnimationFrame(loop);
+        }
+
+        function createLine(y) {
+            const line = document.createElement('div');
+            line.className = 'line';
+            line.style.top = y + 'px';
+            roadArea.appendChild(line);
+            lines.push(line);
+        }
+
+        function spawn(type) {
+            const el = document.createElement('div');
+            const roadW = roadArea.clientWidth;
+            const x = 25 + Math.random() * (roadW - 70);
+            el.style.left = x + 'px';
+            el.style.top = '-90px';
+            if (type === 'enemy') {
+                el.className = 'enemy';
+                el.textContent = Math.random() > .5 ? '🚙' : '🚕';
+                enemies.push(el);
+            }
+            if (type === 'coin') {
+                el.className = 'coin';
+                coins.push(el);
+            }
+            if (type === 'power') {
+                el.className = 'power';
+                el.textContent = '🛡️';
+                powers.push(el);
+            }
+            roadArea.appendChild(el);
+        }
+
+        function loop() {
+            if (!running) return;
+            frame++;
+            const vehicle = getVehicle();
+            const road = getRoad();
+            speed = (4 + Math.floor(score / 350)) * road.difficulty;
+            score += 1;
+            if (shield > 0) shield--;
+
+            const roadW = roadArea.clientWidth;
+            let px = player.offsetLeft;
+            if (left) px -= 6 * vehicle.speed;
+            if (right) px += 6 * vehicle.speed;
+            px = Math.max(8, Math.min(roadW - player.offsetWidth - 8, px));
+            player.style.left = px + 'px';
+            player.style.boxShadow = shield > 0 ? '0 0 25px #b388ff' : '0 6px 12px rgba(0,0,0,.45)';
+
+            lines.forEach(line => {
+                let y = line.offsetTop + speed;
+                if (y > innerHeight) y = -80;
+                line.style.top = y + 'px';
+            });
+
+            if (frame % 65 === 0) spawn('enemy');
+            if (frame % 45 === 0) spawn('coin');
+            if (frame % 520 === 0) spawn('power');
+
+            moveObjects(enemies, speed, el => {
+                if (hit(player, el)) {
+                    if (shield > 0) { el.remove(); enemies = enemies.filter(e => e !== el); shield = 0; showToast('Shield saved you!'); }
+                    else endGame('You crashed in traffic!');
+                }
+            });
+            moveObjects(coins, speed + 1, el => {
+                if (hit(player, el)) {
+                    runCoins += 1;
+                    score += 15;
+                    el.remove(); coins = coins.filter(c => c !== el);
+                }
+            });
+            moveObjects(powers, speed, el => {
+                if (hit(player, el)) {
+                    shield = 300;
+                    showToast('Shield activated!');
+                    el.remove(); powers = powers.filter(p => p !== el);
+                }
+            });
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('runCoins').textContent = runCoins;
+            document.getElementById('speed').textContent = speed.toFixed(1);
+            requestAnimationFrame(loop);
+        }
+
+        function moveObjects(arr, spd, callback) {
+            arr.slice().forEach(el => {
+                const y = el.offsetTop + spd;
+                el.style.top = y + 'px';
+                if (y > innerHeight + 100) {
+                    el.remove();
+                    enemies = enemies.filter(e => e !== el);
+                    coins = coins.filter(c => c !== el);
+                    powers = powers.filter(p => p !== el);
+                } else callback(el);
+            });
+        }
+
+        function hit(a, b) {
+            const ar = a.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            return !(ar.bottom < br.top || ar.top > br.bottom || ar.right < br.left || ar.left > br.right);
+        }
+
+        function endGame(msg) {
+            if (!running) return;
+            running = false;
+            data.coins += runCoins;
+            save();
+            document.getElementById('overText').textContent = msg;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalCoins').textContent = runCoins + ' 🪙';
+            document.getElementById('overCoins').textContent = data.coins + ' 🪙';
+            showScreen('gameOver');
+        }
+
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            t.textContent = text;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 900);
+        }
+
+        addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') left = true;
+            if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') right = true;
+        });
+        addEventListener('keyup', e => {
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') left = false;
+            if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') right = false;
+        });
+
+        renderUI();
+    </script>
+</body>
+
+</html>
